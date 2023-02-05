@@ -1,9 +1,12 @@
 import { createStore } from "vuex";
 
-export default createStore({
-  state: {},
-  getters: {},
-  mutations: {},
-  actions: {},
-  modules: {},
+const store = createStore({
+  state() {
+    return {
+      locations: [],
+      API_KEY: "",
+    };
+  },
 });
+
+export default store;
