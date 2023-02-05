@@ -1,5 +1,6 @@
 # weather_vue
 
+To use the application you need to get an API key from openweathermap.org and add it to the store/index.js. API Key is free. 
 ## Project setup
 ```
 npm install
