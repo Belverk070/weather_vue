@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     return {
@@ -33,32 +34,34 @@ export default {
     };
   },
   methods: {
-    getWeatherData() {
+    async getWeatherData() {
       if (this.location === "") return;
-      fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${this.location}&appid=${this.$store.state.API_KEY}`
-      )
-        .then((response) => response.json())
-        .then((json) => {
-          let weatherInfo = {
-            id: json.id,
-            location: this.location,
-            temperature: parseInt(json.main.temp - 273),
-            windSpeed: json.wind.speed,
-            humidity: json.main.humidity,
-            description: json.weather[0].description,
-            name: json.name,
-            country: json.sys.country,
-            image: json.weather[0].icon,
-          };
-
-          this.$store.state.locations.push(weatherInfo);
-          localStorage.setItem(
-            "locations",
-            JSON.stringify(this.$store.state.locations)
-          );
-          this.location = "";
-        });
+      try {
+        const response = await axios.get(
+          `https://api.openweathermap.org/data/2.5/weather?q=${this.location}&appid=${this.$store.state.API_KEY}`
+        );
+        const data = response.data;
+        const weatherInfo = {
+          id: data.id,
+          location: this.location,
+          temperature: parseInt(response.data.main.temp - 273),
+          windSpeed: data.wind.speed,
+          humidity: data.main.humidity,
+          description: data.weather[0].description,
+          name: data.name,
+          country: data.sys.country,
+          image: data.weather[0].icon,
+        };
+        this.$store.state.locations.push(weatherInfo);
+        localStorage.setItem(
+          "locations",
+          JSON.stringify(this.$store.state.locations)
+        );
+        this.location = "";
+        console.log(weatherInfo);
+      } catch (error) {
+        console.error(error);
+      }
     },
   },
 };

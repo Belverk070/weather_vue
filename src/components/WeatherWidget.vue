@@ -45,19 +45,85 @@
 
 <script>
 import WidgetSettings from "./WidgetSettings.vue";
+import axios from "axios";
+
 export default {
+  data() {
+    return {};
+  },
   components: {
     WidgetSettings,
+  },
+  methods: {
+    async getUserLocation(lat, lon) {
+      try {
+        const response = await axios.get(
+          `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&appid=${this.$store.state.API_KEY}`
+        );
+        const location = response.data[0].name;
+        console.log("YOUR LOCATION IS", location);
+        this.$store.state.currentUserLocation = location;
+        console.log("Location in store", this.$store.state.currentUserLocation);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async getCurrentLocationWeather(location) {
+      if (this.location === "") return;
+      try {
+        const response = await axios.get(
+          `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${this.$store.state.API_KEY}`
+        );
+        const data = response.data;
+        const weatherInfo = {
+          id: data.id,
+          location: location,
+          temperature: parseInt(response.data.main.temp - 273),
+          windSpeed: data.wind.speed,
+          humidity: data.main.humidity,
+          description: data.weather[0].description,
+          name: data.name,
+          country: data.sys.country,
+          image: data.weather[0].icon,
+        };
+        this.$store.state.locations.push(weatherInfo);
+        localStorage.setItem(
+          "locations",
+          JSON.stringify(this.$store.state.locations)
+        );
+        this.location = "";
+        console.log(weatherInfo);
+      } catch (error) {
+        console.error(error);
+      }
+    },
   },
   computed: {
     locations() {
       return this.$store.state?.locations || [];
     },
   },
+  created() {
+    const success = (position) => {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      this.getUserLocation(latitude, longitude);
+      console.log(latitude, longitude);
+    };
+    const error = (err) => {
+      console.log(err);
+    };
+    navigator.geolocation.getCurrentPosition(success, error);
+  },
+
   mounted() {
     const data = localStorage.getItem("locations");
     if (data) {
       this.$store.state.locations = JSON.parse(data);
+    } else {
+      const currentUserLocation = this.$store.state.currentUserLocation;
+      console.log("data from store", this.$store.state.currentUserLocation);
+      setTimeout(this.getCurrentLocationWeather, 2000, currentUserLocation);
     }
   },
 };

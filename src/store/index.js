@@ -4,6 +4,7 @@ const store = createStore({
   state() {
     return {
       locations: [],
+      currentUserLocation: null,
       API_KEY: "",
     };
   },
