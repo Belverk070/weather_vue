@@ -1,5 +1,5 @@
 <template>
-  <widget-settings />
+  <widget-control />
   <div class="weather-board">
     <div
       v-drag="{ axis: 'y', snap: '397px' }"
@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import WidgetSettings from "./WidgetSettings.vue";
+import WidgetControl from "./WidgetControl.vue";
 import axios from "axios";
 
 export default {
@@ -54,10 +54,22 @@ export default {
     return {};
   },
   components: {
-    WidgetSettings,
+    WidgetControl,
   },
   methods: {
-    async getUserLocation(lat, lon) {
+    getUserCoordinates() {
+      const success = (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        this.getUserCityName(latitude, longitude);
+        console.log(latitude, longitude);
+      };
+      const error = (err) => {
+        console.log(err);
+      };
+      navigator.geolocation.getCurrentPosition(success, error);
+    },
+    async getUserCityName(lat, lon) {
       try {
         const response = await axios.get(
           `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&appid=${this.$store.state.API_KEY}`
@@ -70,7 +82,7 @@ export default {
         console.error(error);
       }
     },
-    async getCurrentLocationWeather(location) {
+    async getUserCityWeather(location) {
       if (this.location === "") return;
       try {
         const response = await axios.get(
@@ -99,6 +111,8 @@ export default {
         console.error(error);
       }
     },
+    // TODO: update weather card info
+    updateWeatherCardsInfo() {},
   },
   computed: {
     locations() {
@@ -106,18 +120,8 @@ export default {
     },
   },
   created() {
-    const success = (position) => {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      this.getUserLocation(latitude, longitude);
-      console.log(latitude, longitude);
-    };
-    const error = (err) => {
-      console.log(err);
-    };
-    navigator.geolocation.getCurrentPosition(success, error);
+    this.getUserCoordinates();
   },
-
   mounted() {
     const data = localStorage.getItem("locations");
     if (data) {
@@ -125,8 +129,7 @@ export default {
     } else {
       const currentUserLocation = this.$store.state.currentUserLocation;
       console.log("data from store", this.$store.state.currentUserLocation);
-      // this.getCurrentLocationWeather(currentUserLocation);
-      setTimeout(this.getCurrentLocationWeather, 3000, currentUserLocation);
+      setTimeout(this.getUserCityWeather, 3000, currentUserLocation);
     }
   },
 };

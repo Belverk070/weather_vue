@@ -8,10 +8,10 @@
           v-model="location"
           type="text"
           placeholder="Enter Your Location"
-          @keypress.enter="getWeatherData"
+          @keypress.enter="getWeatherInfo"
         />
         <button
-          @click="getWeatherData"
+          @click="getWeatherInfo"
           class="search-box__button fa-solid fa-magnifying-glass"
         ></button>
       </div>
@@ -26,7 +26,7 @@
 <script>
 import axios from "axios";
 export default {
-  name: "WidgetSettings",
+  name: "WidgetControl",
   data() {
     return {
       location: "",
@@ -39,7 +39,7 @@ export default {
     };
   },
   methods: {
-    async getWeatherData() {
+    async getWeatherInfo() {
       if (this.location === "") return;
       try {
         const response = await axios.get(
