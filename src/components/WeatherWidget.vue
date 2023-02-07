@@ -1,41 +1,42 @@
 <template>
   <widget-settings />
-  <div class="weather-cards">
+  <div class="weather-board">
     <div
+      v-drag="{ axis: 'y', snap: '397px' }"
       v-for="(location, index) in locations"
       :key="index"
-      class="weather-cards__card"
+      class="weather-card"
     >
-      <div class="weather-card__info">
-        <p class="weather-card__info__title description">
+      <div class="card-info">
+        <p class="card-info__title description">
           {{ location.name }}, {{ location.country }}
         </p>
         <img
+          class="card-info__image"
           :src="`https://openweathermap.org/img/wn/${location.image}@2x.png`"
-          alt="..."
+          alt="Weather image"
         />
-        <p class="weather-card__info__temperature temperature">
+        <p class="card-info__temperature temperature">
           {{ location.temperature }}<span>C</span>
         </p>
-        <p class="weather-card__info__description description">
+        <p class="card-info__description description">
           {{ location.description }}
         </p>
-      </div>
-
-      <div class="weather-card__details">
-        <div class="weather-details__humidity humidity">
-          <i class="fa-solid fa-water"></i>
-          <div class="text">
-            <span>{{ location.humidity }} %</span>
-            <p>Humidity</p>
+        <div class="wrapper">
+          <div class="card-info__humidity humidity">
+            <i class="fa-solid fa-water"></i>
+            <div class="text">
+              <span>{{ location.humidity }} %</span>
+              <p>Humidity</p>
+            </div>
           </div>
-        </div>
 
-        <div class="weather-details__wind">
-          <i class="fa-solid fa-wind"></i>
-          <div class="text">
-            <span>{{ location.windSpeed }} m/s</span>
-            <p>Wind speed</p>
+          <div class="card-info__wind">
+            <i class="fa-solid fa-wind"></i>
+            <div class="text">
+              <span>{{ location.windSpeed }} m/s</span>
+              <p>Wind speed</p>
+            </div>
           </div>
         </div>
       </div>
@@ -48,6 +49,7 @@ import WidgetSettings from "./WidgetSettings.vue";
 import axios from "axios";
 
 export default {
+  name: "WeatherWidget",
   data() {
     return {};
   },
@@ -123,21 +125,20 @@ export default {
     } else {
       const currentUserLocation = this.$store.state.currentUserLocation;
       console.log("data from store", this.$store.state.currentUserLocation);
-      setTimeout(this.getCurrentLocationWeather, 2000, currentUserLocation);
+      // this.getCurrentLocationWeather(currentUserLocation);
+      setTimeout(this.getCurrentLocationWeather, 3000, currentUserLocation);
     }
   },
 };
 </script>
 
 <style scoped>
-.weather-cards {
+.weather-board {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 30px;
 }
-.weather-cards__card {
+.weather-card {
   position: relative;
   width: 400px;
   background: #fff;
@@ -148,7 +149,7 @@ export default {
   transition: 0.6s ease-out;
 }
 
-.weather-card__info {
+.card-info {
   text-align: center;
 }
 
@@ -172,43 +173,43 @@ export default {
   text-transform: capitalize;
 }
 
-.weather-card__details {
+.wrapper {
   width: 100%;
   display: flex;
   justify-content: space-between;
   margin-top: 30px;
 }
-.weather-details__humidity,
-.weather-details__wind {
+.card-info__humidity,
+.card-info__wind {
   display: flex;
   align-items: center;
   width: 50%;
   height: 100px;
 }
 
-.weather-details__humidity {
+.card-info__humidity {
   padding-left: 20px;
   justify-content: flex-start;
 }
-.weather-details__wind {
+.card-info__wind {
   padding-right: 20px;
   justify-content: flex-end;
 }
 
-.weather-card__details i {
+.wrapper i {
   color: #06283d;
   font-size: 26px;
   margin-right: 10px;
   margin-top: 10px;
 }
 
-.weather-card__details span {
+.wrapper span {
   color: #06283d;
   font-size: 22px;
   font-weight: 500;
 }
 
-.weather-card__details p {
+.wrapper p {
   color: #06283d;
   font-size: 14px;
   font-weight: 500;

@@ -5,7 +5,7 @@ const store = createStore({
     return {
       locations: [],
       currentUserLocation: null,
-      API_KEY: "",
+      API_KEY: "e2cf5298334e1544943f7edee09e6205",
     };
   },
 });

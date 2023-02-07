@@ -1,9 +1,10 @@
 <template>
   <div>
-    <div class="settings-wrapper">
+    <div class="control-panel">
       <div v-show="isShow" class="search-box">
-        <i class="fa-solid fa-location-dot"></i>
+        <i class="search-box__icon fa-solid fa-location-dot"></i>
         <input
+          class="search-box__input"
           v-model="location"
           type="text"
           placeholder="Enter Your Location"
@@ -11,10 +12,13 @@
         />
         <button
           @click="getWeatherData"
-          class="fa-solid fa-magnifying-glass"
+          class="search-box__button fa-solid fa-magnifying-glass"
         ></button>
       </div>
-      <button class="fa-solid fa-gear" @click="isShow = !isShow"></button>
+      <button
+        class="control-panel__button fa-solid fa-gear"
+        @click="isShow = !isShow"
+      ></button>
     </div>
   </div>
 </template>
@@ -22,6 +26,7 @@
 <script>
 import axios from "axios";
 export default {
+  name: "WidgetSettings",
   data() {
     return {
       location: "",
@@ -40,7 +45,7 @@ export default {
         const response = await axios.get(
           `https://api.openweathermap.org/data/2.5/weather?q=${this.location}&appid=${this.$store.state.API_KEY}`
         );
-        const data = response.data;
+        const data = await response.data;
         const weatherInfo = {
           id: data.id,
           location: this.location,
@@ -68,7 +73,7 @@ export default {
 </script>
 
 <style scoped>
-.settings-wrapper {
+.control-panel {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -77,7 +82,7 @@ export default {
   margin: 0 auto;
 }
 
-.settings-wrapper button {
+.control-panel button {
   cursor: pointer;
   width: 50px;
   height: 50px;
@@ -88,12 +93,12 @@ export default {
   transition: 0.4s ease;
 }
 
-.settings-wrapper button:hover {
+.control-panel button:hover {
   color: #fff;
   background: #06283d;
 }
 
-.settings-wrapper i {
+.control-panel i {
   cursor: pointer;
   color: #06283d;
   background: #dff6ff;
