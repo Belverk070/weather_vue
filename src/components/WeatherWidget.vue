@@ -1,5 +1,5 @@
 <template>
-  <widget-control />
+  <widget-control @editCards="editCards" />
   <div class="weather-board">
     <div
       v-drag="{ axis: 'y', snap: '397px' }"
@@ -11,34 +11,50 @@
         <p class="card-info__title description">
           {{ location.name }}, {{ location.country }}
         </p>
+
         <img
           class="card-info__image"
           :src="`https://openweathermap.org/img/wn/${location.image}@2x.png`"
           alt="Weather image"
         />
+
         <p class="card-info__temperature temperature">
           {{ location.temperature }}<span>C</span>
         </p>
+
         <p class="card-info__description description">
           {{ location.description }}
         </p>
+
         <div class="wrapper">
           <div class="card-info__humidity humidity">
             <i class="fa-solid fa-water"></i>
+
             <div class="text">
               <span>{{ location.humidity }} %</span>
+
               <p>Humidity</p>
             </div>
           </div>
 
           <div class="card-info__wind">
             <i class="fa-solid fa-wind"></i>
+
             <div class="text">
               <span>{{ location.windSpeed }} m/s</span>
+
               <p>Wind speed</p>
             </div>
           </div>
         </div>
+        <span class="card__detele-button" title="Delete card"
+          ><img
+            v-show="isShow"
+            @click="deleteWeatherCard(location.id)"
+            class="delete-img"
+            src="../assets/close-icon.svg"
+            alt="Close modal window icon"
+        /></span>
       </div>
     </div>
   </div>
@@ -47,22 +63,29 @@
 <script>
 import WidgetControl from "./WidgetControl.vue";
 import axios from "axios";
+import { apiKey } from "@/data/vars";
+import { getWeather } from "@/api";
 
 export default {
   name: "WeatherWidget",
   data() {
-    return {};
+    return {
+      isShow: false,
+    };
   },
   components: {
     WidgetControl,
   },
   methods: {
+    editCards() {
+      this.isShow = !this.isShow;
+    },
+
     getUserCoordinates() {
       const success = (position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
         this.getUserCityName(latitude, longitude);
-        console.log(latitude, longitude);
       };
       const error = (err) => {
         console.log(err);
@@ -72,27 +95,32 @@ export default {
     async getUserCityName(lat, lon) {
       try {
         const response = await axios.get(
-          `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&appid=${this.$store.state.API_KEY}`
+          `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&appid=${apiKey}`
         );
         const location = response.data[0].name;
-        console.log("YOUR LOCATION IS", location);
         this.$store.state.currentUserLocation = location;
-        console.log("Location in store", this.$store.state.currentUserLocation);
+
+        const data = localStorage.getItem("locations");
+        if (data) {
+          this.$store.state.locations = JSON.parse(data);
+        } else {
+          const currentUserLocation = this.$store.state.currentUserLocation;
+          setTimeout(this.getUserCityWeather, 1500, currentUserLocation);
+        }
       } catch (error) {
         console.error(error);
       }
     },
     async getUserCityWeather(location) {
-      if (this.location === "") return;
       try {
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${this.$store.state.API_KEY}`
-        );
-        const data = response.data;
+        const { data } = await getWeather({
+          location: location,
+          apiKey: apiKey,
+        });
         const weatherInfo = {
           id: data.id,
           location: location,
-          temperature: parseInt(response.data.main.temp - 273),
+          temperature: parseInt(data.main.temp - 273),
           windSpeed: data.wind.speed,
           humidity: data.main.humidity,
           description: data.weather[0].description,
@@ -105,32 +133,26 @@ export default {
           "locations",
           JSON.stringify(this.$store.state.locations)
         );
-        this.location = "";
         console.log(weatherInfo);
       } catch (error) {
         console.error(error);
       }
     },
-    // TODO: update weather card info
-    updateWeatherCardsInfo() {},
+    deleteWeatherCard(id) {
+      console.log("delete");
+      const index = this.$store.state.locations.findIndex(
+        (item) => item.id === id
+      );
+      this.$store.commit("deleteCard", index);
+    },
   },
   computed: {
     locations() {
       return this.$store.state?.locations || [];
     },
   },
-  created() {
-    this.getUserCoordinates();
-  },
   mounted() {
-    const data = localStorage.getItem("locations");
-    if (data) {
-      this.$store.state.locations = JSON.parse(data);
-    } else {
-      const currentUserLocation = this.$store.state.currentUserLocation;
-      console.log("data from store", this.$store.state.currentUserLocation);
-      setTimeout(this.getUserCityWeather, 3000, currentUserLocation);
-    }
+    this.getUserCoordinates();
   },
 };
 </script>
@@ -140,6 +162,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 20px;
 }
 .weather-card {
   position: relative;
@@ -197,6 +220,13 @@ export default {
 .card-info__wind {
   padding-right: 20px;
   justify-content: flex-end;
+}
+
+.delete-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: pointer;
 }
 
 .wrapper i {

@@ -3,6 +3,7 @@
     <div class="control-panel">
       <div v-show="isShow" class="search-box">
         <i class="search-box__icon fa-solid fa-location-dot"></i>
+
         <input
           class="search-box__input"
           v-model="location"
@@ -10,21 +11,25 @@
           placeholder="Enter Your Location"
           @keypress.enter="getWeatherInfo"
         />
+
         <button
           @click="getWeatherInfo"
           class="search-box__button fa-solid fa-magnifying-glass"
         ></button>
       </div>
+
       <button
         class="control-panel__button fa-solid fa-gear"
-        @click="isShow = !isShow"
+        @click="openSettings"
       ></button>
     </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { apiKey } from "@/data/vars";
+import { getWeather } from "@/api";
+
 export default {
   name: "WidgetControl",
   data() {
@@ -42,14 +47,14 @@ export default {
     async getWeatherInfo() {
       if (this.location === "") return;
       try {
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?q=${this.location}&appid=${this.$store.state.API_KEY}`
-        );
-        const data = await response.data;
+        const { data } = await getWeather({
+          location: this.location,
+          apiKey: apiKey,
+        });
         const weatherInfo = {
           id: data.id,
           location: this.location,
-          temperature: parseInt(response.data.main.temp - 273),
+          temperature: parseInt(data.main.temp - 273),
           windSpeed: data.wind.speed,
           humidity: data.main.humidity,
           description: data.weather[0].description,
@@ -68,6 +73,10 @@ export default {
         console.error(error);
       }
     },
+    openSettings() {
+      this.$emit("editCards");
+      this.isShow = !this.isShow;
+    },
   },
 };
 </script>
@@ -82,7 +91,7 @@ export default {
   margin: 0 auto;
 }
 
-.control-panel button {
+.control-panel__button {
   cursor: pointer;
   width: 50px;
   height: 50px;
@@ -93,16 +102,9 @@ export default {
   transition: 0.4s ease;
 }
 
-.control-panel button:hover {
+.control-panel__button:hover {
   color: #fff;
   background: #06283d;
-}
-
-.control-panel i {
-  cursor: pointer;
-  color: #06283d;
-  background: #dff6ff;
-  font-size: 36px;
 }
 
 .search-box {
@@ -114,7 +116,7 @@ export default {
   justify-content: space-between;
 }
 
-.search-box input {
+.search-box__input {
   background: #fff;
   height: 50px;
   width: 80%;
@@ -125,14 +127,14 @@ export default {
   padding-left: 32px;
 }
 
-.search-box input::placeholder {
+.search-box__input::placeholder {
   font-size: 20px;
   font-weight: 500;
   color: #06283d;
   text-transform: capitalize;
 }
 
-.search-box button {
+.search-box__button {
   cursor: pointer;
   width: 50px;
   height: 50px;
@@ -143,12 +145,12 @@ export default {
   transition: 0.4s ease;
 }
 
-.search-box button:hover {
+.search-box__button:hover {
   color: #fff;
   background: #06283d;
 }
 
-.search-box i {
+.search-box__icon {
   position: absolute;
   padding-left: 5px;
   color: #06283d;

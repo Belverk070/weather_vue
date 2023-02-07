@@ -5,8 +5,13 @@ const store = createStore({
     return {
       locations: [],
       currentUserLocation: null,
-      API_KEY: "",
     };
+  },
+  mutations: {
+    deleteCard(state, index) {
+      state.locations.splice(index, 1);
+      localStorage.setItem("locations", JSON.stringify(state.locations));
+    },
   },
 });
 
